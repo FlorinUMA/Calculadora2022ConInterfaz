@@ -40,8 +40,8 @@ public class GUICalculadora {
 	private JButton bFactorial;
 	private Calculadora laCalculadora;
 	private LinkedList<String> operaciones;
-	boolean sintaxisCorrecta = true;
 	private String[] operadores;
+	private int posicionUltimoOperador = 0;
 
 	/**
 	 * Launch the application.
@@ -72,7 +72,7 @@ public class GUICalculadora {
 		operadores[2] = "*";
 		operadores[3] = "/";
 		operadores[4] = "!";
-		operadores[5] = "P?";
+		operadores[5] = "P";
 	}
 
 	/**
@@ -85,18 +85,15 @@ public class GUICalculadora {
 		frame.getContentPane().setLayout(null);
 
 		pantalla = new JTextField();
-		pantalla.setBounds(12, 12, 303, 59);
+		pantalla.setBounds(12, 12, 291, 59);
 		frame.getContentPane().add(pantalla);
 		pantalla.setColumns(10);
 
 		JButton bBackSpace = new JButton("B");
 		bBackSpace.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (sintaxisCorrecta) {
-					StringBuffer nuevaPantalla = new StringBuffer(pantalla.getText());
-					nuevaPantalla.deleteCharAt(nuevaPantalla.length() - 1);
-					pantalla.setText(nuevaPantalla.toString());
-				}
+					pantalla.setText(eliminaUltimoElementoDePantalla());
+				
 			}
 		});
 		bBackSpace.setBounds(12, 100, 55, 55);
@@ -106,8 +103,9 @@ public class GUICalculadora {
 		bBorrar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				operaciones.clear();
+				posicionUltimoOperador = 0;
 				pantalla.setText("");
-				sintaxisCorrecta = true;
+				
 			}
 		});
 		bBorrar.setBounds(90, 100, 55, 55);
@@ -116,9 +114,9 @@ public class GUICalculadora {
 		b00 = new JButton("00");
 		b00.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (sintaxisCorrecta) {
+				
 					pantalla.setText(pantalla.getText() + b00.getText());
-				}
+				
 			}
 		});
 		b00.setBounds(168, 100, 55, 55);
@@ -127,16 +125,24 @@ public class GUICalculadora {
 		bSumar = new JButton("+");
 		bSumar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (sintaxisCorrecta) {
-					if ((operaciones.isEmpty() && (pantalla.getText() == null || pantalla.getText().equals("")))
-							|| (!operaciones.isEmpty() && operaciones.peekLast().equals(operadores[0]) && (pantalla.getText() == null || pantalla.getText().equals("")))) {
+				
+					if ((operaciones.isEmpty() && (pantalla.getText() == null || pantalla.getText().equals("")))) {
 						cometidoErrorSintaxis();
-					} else {
-						operaciones.add(pantalla.getText());
+						
+					} 	else if (!operaciones.isEmpty() && calculaElementoNuevo(pantalla.getText()).equals("") && elUltimoElementoEsOperacion()) {
+						operaciones.pollLast();
 						operaciones.add(operadores[0]);
-						pantalla.setText("");
+						pantalla.setText(operacionesACadena());
+						System.out.println("ha entrado por el elseif");
 					}
-				}
+					else {
+						String elementoNuevo = calculaElementoNuevo(pantalla.getText());
+						operaciones.add(elementoNuevo);
+						operaciones.add(operadores[0]);
+						posicionUltimoOperador = operaciones.size();
+						pantalla.setText(operacionesACadena());
+					}
+				
 			}
 		});
 		bSumar.setBounds(246, 100, 55, 55);
@@ -145,9 +151,9 @@ public class GUICalculadora {
 		bSiete = new JButton("7");
 		bSiete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (sintaxisCorrecta) {
+				
 					pantalla.setText(pantalla.getText() + bSiete.getText());
-				}
+				
 			}
 		});
 		bSiete.setBounds(12, 167, 55, 55);
@@ -156,9 +162,9 @@ public class GUICalculadora {
 		bCuatro = new JButton("4");
 		bCuatro.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (sintaxisCorrecta) {
+				
 					pantalla.setText(pantalla.getText() + bCuatro.getText());
-				}
+				
 			}
 		});
 		bCuatro.setBounds(12, 234, 55, 55);
@@ -167,9 +173,9 @@ public class GUICalculadora {
 		bUno = new JButton("1");
 		bUno.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (sintaxisCorrecta) {
+				
 					pantalla.setText(pantalla.getText() + bUno.getText());
-				}
+				
 			}
 		});
 		bUno.setBounds(12, 301, 55, 55);
@@ -178,9 +184,9 @@ public class GUICalculadora {
 		bCero = new JButton("0");
 		bCero.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (sintaxisCorrecta) {
+				
 					pantalla.setText(pantalla.getText() + bCero.getText());
-				}
+				
 			}
 		});
 		bCero.setBounds(12, 368, 55, 55);
@@ -189,9 +195,9 @@ public class GUICalculadora {
 		bOcho = new JButton("8");
 		bOcho.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (sintaxisCorrecta) {
+				
 					pantalla.setText(pantalla.getText() + bOcho.getText());
-				}
+				
 			}
 		});
 		bOcho.setBounds(90, 167, 55, 55);
@@ -200,9 +206,9 @@ public class GUICalculadora {
 		bNueve = new JButton("9");
 		bNueve.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (sintaxisCorrecta) {
+				
 					pantalla.setText(pantalla.getText() + bNueve.getText());
-				}
+				
 			}
 		});
 		bNueve.setBounds(168, 167, 55, 55);
@@ -211,7 +217,7 @@ public class GUICalculadora {
 		bRestar = new JButton("-");
 		bRestar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (sintaxisCorrecta) {
+				
 
 					if ((operaciones.isEmpty() && (pantalla.getText() == null || pantalla.getText().equals("")))
 							|| (!operaciones.isEmpty() && elUltimoElementoEsOperacion())) {
@@ -224,7 +230,7 @@ public class GUICalculadora {
 						pantalla.setText("");
 					}
 				}
-			}
+			
 		});
 		bRestar.setBounds(246, 167, 55, 55);
 		frame.getContentPane().add(bRestar);
@@ -232,9 +238,9 @@ public class GUICalculadora {
 		bCinco = new JButton("5");
 		bCinco.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (sintaxisCorrecta) {
+				
 					pantalla.setText(pantalla.getText() + bCinco.getText());
-				}
+				
 			}
 		});
 		bCinco.setBounds(90, 234, 55, 55);
@@ -243,9 +249,9 @@ public class GUICalculadora {
 		bSeis = new JButton("6");
 		bSeis.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (sintaxisCorrecta) {
+				
 					pantalla.setText(pantalla.getText() + bSeis.getText());
-				}
+				
 			}
 		});
 		bSeis.setBounds(168, 234, 55, 55);
@@ -254,7 +260,7 @@ public class GUICalculadora {
 		bMultiplicar = new JButton("*");
 		bMultiplicar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (sintaxisCorrecta) {
+				
 					if ((operaciones.isEmpty() && (pantalla.getText() == null || pantalla.getText().equals("")))
 							|| (!operaciones.isEmpty() && operaciones.peekLast().equals(operadores[2]) && (pantalla.getText() == null || pantalla.getText().equals("")))) {
 						cometidoErrorSintaxis();
@@ -263,7 +269,7 @@ public class GUICalculadora {
 						operaciones.add(operadores[2]);
 						pantalla.setText("");
 					}
-				}
+				
 
 			}
 		});
@@ -273,9 +279,9 @@ public class GUICalculadora {
 		bDos = new JButton("2");
 		bDos.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (sintaxisCorrecta) {
+				
 					pantalla.setText(pantalla.getText() + bDos.getText());
-				}
+				
 			}
 		});
 		bDos.setBounds(90, 301, 55, 55);
@@ -284,9 +290,9 @@ public class GUICalculadora {
 		bTres = new JButton("3");
 		bTres.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (sintaxisCorrecta) {
+
 					pantalla.setText(pantalla.getText() + bTres.getText());
-				}
+				
 			}
 		});
 		bTres.setBounds(168, 301, 55, 55);
@@ -295,7 +301,7 @@ public class GUICalculadora {
 		bDividir = new JButton("/");
 		bDividir.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (sintaxisCorrecta) {
+				
 					if ((operaciones.isEmpty() && (pantalla.getText() == null || pantalla.getText().equals("")))
 							|| (!operaciones.isEmpty() && operaciones.peekLast().equals(operadores[3]) && (pantalla.getText() == null || pantalla.getText().equals("")))) {
 						cometidoErrorSintaxis();
@@ -304,7 +310,7 @@ public class GUICalculadora {
 						operaciones.add(operadores[3]);
 						pantalla.setText("");
 					}
-				}
+				
 			}
 		});
 		bDividir.setBounds(246, 301, 55, 55);
@@ -313,12 +319,12 @@ public class GUICalculadora {
 		bComa = new JButton(".");
 		bComa.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (sintaxisCorrecta) {
+				
 					if(pantalla.getText().length() == 0) {
 						pantalla.setText(pantalla.getText() + "0");
 					}
 					pantalla.setText(pantalla.getText() + bComa.getText());
-				}
+				
 			}
 		});
 		bComa.setBounds(90, 368, 55, 55);
@@ -327,14 +333,14 @@ public class GUICalculadora {
 		bPrimo = new JButton("P?");
 		bPrimo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (sintaxisCorrecta) {
+				
 					if ((operaciones.isEmpty() && (pantalla.getText() == null || pantalla.getText().equals("")))
 							|| (!operaciones.isEmpty() && operaciones.peekLast().equals(operadores[5]))) {
 						cometidoErrorSintaxis();
 					} else {
 						operaciones.add(pantalla.getText());
 						operaciones.add(operadores[5]);
-					}
+					
 				}
 			}
 		});
@@ -344,7 +350,7 @@ public class GUICalculadora {
 		bFactorial = new JButton("!");
 		bFactorial.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (sintaxisCorrecta) {
+				
 					if ((operaciones.isEmpty() && (pantalla.getText() == null || pantalla.getText().equals("")))
 							|| (!operaciones.isEmpty() && operaciones.peekLast().equals(operadores[4]))) {
 						cometidoErrorSintaxis();
@@ -353,7 +359,7 @@ public class GUICalculadora {
 						operaciones.add(operadores[4]);
 					}
 				}
-			}
+			
 		});
 		bFactorial.setBounds(246, 368, 55, 55);
 		frame.getContentPane().add(bFactorial);
@@ -361,15 +367,16 @@ public class GUICalculadora {
 		JButton bIgual = new JButton("=");
 		bIgual.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(sintaxisCorrecta) {
-					if(operaciones.size() < 3 && (operaciones.peekLast().equals(operadores[4]) || operaciones.peekLast().equals(operadores[5]))) {
-						pantalla.setText(procesa(false));
-					} else if(operaciones.size() > 2 && !elUltimoElementoEsOperacion()) {
-						pantalla.setText(procesa(true));
-					} else {
-						cometidoErrorSintaxis();
-					}
-				}
+				
+//					if(operaciones.size() < 3 && (operaciones.peekLast().equals(operadores[4]) || operaciones.peekLast().equals(operadores[5]))) {
+//						pantalla.setText(procesa(false));
+//					} else if(operaciones.size() > 2 && !elUltimoElementoEsOperacion()) {
+//						pantalla.setText(procesa(true));
+//					} else {
+//						cometidoErrorSintaxis();
+//					}
+				pantalla.setText(operaciones.toString());
+				
 			}
 		});
 		bIgual.setFont(new Font("Dialog", Font.BOLD, 14));
@@ -378,7 +385,6 @@ public class GUICalculadora {
 	}
 
 	private void cometidoErrorSintaxis() {
-		sintaxisCorrecta = false;
 		pantalla.setText(operaciones.toString());
 		;
 	}
@@ -392,6 +398,31 @@ public class GUICalculadora {
 			}
 			contador++;
 		}
+		return resultado;
+	}
+	private String eliminaUltimoElementoDePantalla () {
+		StringBuffer nuevaPantalla = new StringBuffer(pantalla.getText());
+		nuevaPantalla.deleteCharAt(nuevaPantalla.length() - 1);
+		return (nuevaPantalla.toString());
+	}
+	private String operacionesACadena() {
+		String resultado = "";
+		int contador = 0;
+		int tamanyo = operaciones.size();
+		while (contador < tamanyo) {
+			resultado += operaciones.get(contador++);
+		}
+		return resultado;
+	}
+	
+	private String calculaElementoNuevo(String cadenaNueva) {
+		String resultado = "";
+		int contador = posicionUltimoOperador;
+		int size = cadenaNueva.length();
+		while (contador < size) {
+			resultado += cadenaNueva.charAt(contador++);
+		}
+		System.out.println(cadenaNueva + " EL RESULTADO: " + resultado + "y la posicion ultima es " + posicionUltimoOperador);
 		return resultado;
 	}
 
