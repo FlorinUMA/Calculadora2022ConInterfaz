@@ -18,7 +18,7 @@ public class GUICalculadora {
 
 	private JFrame frame;
 	private JTextField pantalla;
-	private JButton bBorrar;
+	private JButton bReinicializar;
 	private JButton b00;
 	private JButton bSumar;
 	private JButton bSiete;
@@ -86,25 +86,39 @@ public class GUICalculadora {
 		pantalla.setBounds(12, 12, 291, 59);
 		frame.getContentPane().add(pantalla);
 		pantalla.setColumns(10);
-
-		JButton bBackSpace = new JButton("B");
-		bBackSpace.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-
-			}
-		});
-		bBackSpace.setBounds(12, 100, 55, 55);
-		frame.getContentPane().add(bBackSpace);
-
-		bBorrar = new JButton("C");
-		bBorrar.addActionListener(new ActionListener() {
+		pantalla.setEditable(false);
+		
+		
+		
+		bReinicializar = new JButton("C");
+		bReinicializar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pantalla.setText("");
 				operaciones = new StringBuffer();
+				//Habilitamos los botones
+				
+				b00.setEnabled(true);
+				bSumar.setEnabled(true);
+				bSiete.setEnabled(true);
+				bCuatro.setEnabled(true);
+				bUno.setEnabled(true);
+				bCero.setEnabled(true);
+				bOcho.setEnabled(true);
+				bNueve.setEnabled(true);
+				bRestar.setEnabled(true);
+				bCinco.setEnabled(true);
+				bSeis.setEnabled(true);
+				bMultiplicar.setEnabled(true);
+				bDos.setEnabled(true);
+				bTres.setEnabled(true);
+				bDividir.setEnabled(true);
+				bComa.setEnabled(true);
+				bPrimo.setEnabled(true);
+				bFactorial.setEnabled(true);
 			}
 		});
-		bBorrar.setBounds(90, 100, 55, 55);
-		frame.getContentPane().add(bBorrar);
+		bReinicializar.setBounds(90, 100, 55, 55);
+		frame.getContentPane().add(bReinicializar);
 
 		b00 = new JButton("00");
 		b00.addActionListener(new ActionListener() {
@@ -307,16 +321,45 @@ public class GUICalculadora {
 		JButton bIgual = new JButton("=");
 		bIgual.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				pantalla.setText(operaciones.toString());
+				if(existeOperacionAlFinal()) {
+					//TODO
+				} else {
+					operaciones = new StringBuffer(pantalla.getText());
+					pantalla.setText(procesaOperaciones());
+					operaciones = new StringBuffer(pantalla.getText());
+				}
 			}
+
+		
 		});
 		bIgual.setFont(new Font("Dialog", Font.BOLD, 14));
 		bIgual.setBounds(12, 435, 289, 40);
 		frame.getContentPane().add(bIgual);
+		
+		
 	}
 
-	private void sintaxisInvalida() {
-		// TODO hacer los botones inaccesibles
+	private void sintaxisInvalida(String elProblema) {
+		pantalla.setText(elProblema + ". Pulsar C para restaurar calculadora");
+		b00.setEnabled(false);
+		bSumar.setEnabled(false);
+		bSiete.setEnabled(false);
+		bCuatro.setEnabled(false);
+		bUno.setEnabled(false);
+		bCero.setEnabled(false);
+		bOcho.setEnabled(false);
+		bNueve.setEnabled(false);
+		bRestar.setEnabled(false);
+		bCinco.setEnabled(false);
+		bSeis.setEnabled(false);
+		bMultiplicar.setEnabled(false);
+		bDos.setEnabled(false);
+		bTres.setEnabled(false);
+		bDividir.setEnabled(false);
+		bComa.setEnabled(false);
+		bPrimo.setEnabled(false);
+		bFactorial.setEnabled(false);
+		
 	}
 
 	private boolean existeOperacionAlFinal() {
@@ -336,8 +379,7 @@ public class GUICalculadora {
 	private void anyadeOperacion(char operador) {
 		String pant = pantalla.getText();
 		if (pant.length() == 0) {
-			sintaxisInvalida();
-			pantalla.setText("No puedes empezar una operacion con un operador");
+			sintaxisInvalida("No se puede realizar la operacion " + operador);
 		} else if (existeOperacionAlFinal()) {
 			operaciones.deleteCharAt(operaciones.length() - 1);
 			pantalla.setText(operaciones.toString());
@@ -352,5 +394,11 @@ public class GUICalculadora {
 			operaciones = new StringBuffer(pant);
 			pantalla.setText(pant);
 		}
+	}
+	
+	private String procesaOperaciones() {
+		String resultado = "";
+		
+		return resultado;
 	}
 }
