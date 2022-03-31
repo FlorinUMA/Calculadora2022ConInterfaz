@@ -324,9 +324,11 @@ public class GUICalculadora {
 		bIgual.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				operaciones = new StringBuffer(pantalla.getText());
-				
-				if (existeOperacionAlFinal() && operaciones.charAt(operaciones.length() - 1) != operadores[4] && operaciones.charAt(operaciones.length() - 1) != operadores[5]) {
-					sintaxisInvalida("Error. No se puede calcular la operacion con un operando de dos terminos sin un segundo termino.");
+
+				if (existeOperacionAlFinal() && operaciones.charAt(operaciones.length() - 1) != operadores[4]
+						&& operaciones.charAt(operaciones.length() - 1) != operadores[5]) {
+					sintaxisInvalida(
+							"Error. No se puede calcular la operacion con un operando de dos terminos sin un segundo termino.");
 				} else {
 					pantalla.setText(procesaOperaciones());
 					operaciones = new StringBuffer(pantalla.getText());
@@ -337,12 +339,12 @@ public class GUICalculadora {
 		bIgual.setFont(new Font("Dialog", Font.BOLD, 14));
 		bIgual.setBounds(12, 435, 289, 40);
 		frame.getContentPane().add(bIgual);
-		
+
 		bBorrar = new JButton("B");
 		bBorrar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				StringBuffer nuevo = new StringBuffer(pantalla.getText());
-				if(nuevo.length() > 0) {
+				if (nuevo.length() > 0) {
 					nuevo.deleteCharAt(nuevo.length() - 1);
 					operaciones = nuevo;
 					pantalla.setText(operaciones.toString());
@@ -414,8 +416,34 @@ public class GUICalculadora {
 	}
 
 	private String procesaOperaciones() {
-		String resultado = "";
-		//TODO
-		return resultado;
+		StringBuffer resultado = new StringBuffer();
+		int contador = 0;
+		int tamanyo = operaciones.length();
+		String termino1 = "";
+		String termino2 = "";
+		String operacion = "";
+		boolean elNumEsNegativo = false;
+		while (contador < tamanyo) {
+			char c = operaciones.charAt(contador);
+			if (esOperador(c)) {
+				
+			}
+		}
+		return resultado.toString();
 	}
+
+	private boolean esOperador(char c) {
+		boolean res = false;
+		for(int i = 0; i < operadores.length; i++) {
+			if(operadores[i] == c) {
+				res = true;
+			}
+		}
+		return false;
+	}
+
+	
+
+
+
 }
