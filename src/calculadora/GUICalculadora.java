@@ -37,6 +37,8 @@ public class GUICalculadora {
 	private JButton bComa;
 	private JButton bPrimo;
 	private JButton bFactorial;
+	private JButton bBorrar;
+	private JButton bIgual;
 	private Calculadora laCalculadora;
 	private StringBuffer operaciones;
 	private char[] operadores;
@@ -87,17 +89,16 @@ public class GUICalculadora {
 		frame.getContentPane().add(pantalla);
 		pantalla.setColumns(10);
 		pantalla.setEditable(false);
-		
-		
-		
+
 		bReinicializar = new JButton("C");
 		bReinicializar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pantalla.setText("");
 				operaciones = new StringBuffer();
-				//Habilitamos los botones
-				
+				// Habilitamos los botones
+
 				b00.setEnabled(true);
+				bBorrar.setEnabled(true);
 				bSumar.setEnabled(true);
 				bSiete.setEnabled(true);
 				bCuatro.setEnabled(true);
@@ -115,6 +116,7 @@ public class GUICalculadora {
 				bComa.setEnabled(true);
 				bPrimo.setEnabled(true);
 				bFactorial.setEnabled(true);
+				bIgual.setEnabled(true);
 			}
 		});
 		bReinicializar.setBounds(90, 100, 55, 55);
@@ -318,30 +320,44 @@ public class GUICalculadora {
 		bFactorial.setBounds(246, 368, 55, 55);
 		frame.getContentPane().add(bFactorial);
 
-		JButton bIgual = new JButton("=");
+		bIgual = new JButton("=");
 		bIgual.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(existeOperacionAlFinal()) {
-					//TODO
+				operaciones = new StringBuffer(pantalla.getText());
+				
+				if (existeOperacionAlFinal() && operaciones.charAt(operaciones.length() - 1) != operadores[4] && operaciones.charAt(operaciones.length() - 1) != operadores[5]) {
+					sintaxisInvalida("Error. No se puede calcular la operacion con un operando de dos terminos sin un segundo termino.");
 				} else {
-					operaciones = new StringBuffer(pantalla.getText());
 					pantalla.setText(procesaOperaciones());
 					operaciones = new StringBuffer(pantalla.getText());
 				}
 			}
 
-		
 		});
 		bIgual.setFont(new Font("Dialog", Font.BOLD, 14));
 		bIgual.setBounds(12, 435, 289, 40);
 		frame.getContentPane().add(bIgual);
 		
-		
+		bBorrar = new JButton("B");
+		bBorrar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				StringBuffer nuevo = new StringBuffer(pantalla.getText());
+				if(nuevo.length() > 0) {
+					nuevo.deleteCharAt(nuevo.length() - 1);
+					operaciones = nuevo;
+					pantalla.setText(operaciones.toString());
+				}
+			}
+		});
+		bBorrar.setBounds(12, 100, 55, 55);
+		frame.getContentPane().add(bBorrar);
+
 	}
 
 	private void sintaxisInvalida(String elProblema) {
-		pantalla.setText(elProblema + ". Pulsar C para restaurar calculadora");
+		pantalla.setText(elProblema + ". Pulsar C para reiniciar calculadora");
 		b00.setEnabled(false);
+		bBorrar.setEnabled(false);
 		bSumar.setEnabled(false);
 		bSiete.setEnabled(false);
 		bCuatro.setEnabled(false);
@@ -359,7 +375,8 @@ public class GUICalculadora {
 		bComa.setEnabled(false);
 		bPrimo.setEnabled(false);
 		bFactorial.setEnabled(false);
-		
+		bIgual.setEnabled(false);
+
 	}
 
 	private boolean existeOperacionAlFinal() {
@@ -383,22 +400,22 @@ public class GUICalculadora {
 		} else if (existeOperacionAlFinal()) {
 			operaciones.deleteCharAt(operaciones.length() - 1);
 			pantalla.setText(operaciones.toString());
-			if(existeOperacionAlFinal()) {
+			if (existeOperacionAlFinal()) {
 				operaciones.deleteCharAt(operaciones.length() - 1);
 			}
 			operaciones.append(operador);
 			pantalla.setText(operaciones.toString());
-			
+
 		} else {
 			pant += operador;
 			operaciones = new StringBuffer(pant);
 			pantalla.setText(pant);
 		}
 	}
-	
+
 	private String procesaOperaciones() {
 		String resultado = "";
-		
+		//TODO
 		return resultado;
 	}
 }
