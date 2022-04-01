@@ -7,7 +7,9 @@ Para ello, se ha empleado una cola en la cual iremos almacenando los numeros y l
 Las operacioces se realizarán de manera secuencial, es decir, para la operacion `3+5-2/2` se realizará:
 
 3 + 5 = 8
+
 8 - 2 = 6
+
 6 / 2 = 3
 
 Luego para `3+5-2/2` el resultado será 3
