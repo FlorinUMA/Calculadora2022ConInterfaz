@@ -66,6 +66,11 @@ public class GUICalculadora {
 	public GUICalculadora() {
 		initialize();
 		laCalculadora = new Calculadora();
+		operaciones = new LinkedList<>();
+		/**
+		 * Creamos un array con todas las posibles operaciones disponibles en la
+		 * calculadora. Estas operaciones serán guardadas como char
+		 */
 		operadores = new char[6];
 		operadores[0] = '+';
 		operadores[1] = '-';
@@ -73,7 +78,10 @@ public class GUICalculadora {
 		operadores[3] = '/';
 		operadores[4] = '!';
 		operadores[5] = 'P';
-		operaciones = new LinkedList<>();
+		/**
+		 * Insertar a partir de aqui nuevas operaciones No deberemos modificar las
+		 * posiciones de las que ya se encuentran implementadas.
+		 */
 	}
 
 	/**
@@ -95,8 +103,13 @@ public class GUICalculadora {
 		bReinicializar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pantalla.setText("");
+				/**
+				 * Limpiamos todas las operaciones
+				 */
 				operaciones = new LinkedList<>();
-				// Habilitamos los botones
+				/**
+				 * Habilitamos todos los botones tras pulsar C
+				 */
 
 				b00.setEnabled(true);
 				bBorrar.setEnabled(true);
@@ -212,14 +225,28 @@ public class GUICalculadora {
 		bRestar = new JButton("-");
 		bRestar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (!operaciones.isEmpty()
-						&& esUnOperador(Character.toString(pantalla.getText().charAt(pantalla.getText().length() - 1)))
-						&& (pantalla.getText().charAt(pantalla.getText().length() - 1)) != operadores[1]) {
-//					operaciones.add(Character.toString(operadores[1]));
-//					pantalla.setText(convierteOperacionesAString());
+				/**
+				 * La implementacion del menos es diferente ya que el operador menos se puede
+				 * usar o bien para indicar el signo de un numero o bien para indicar la propia
+				 * operacion de resta
+				 */
+				if ((operaciones.isEmpty() && (pantalla.getText().equals("") || pantalla.getText() == null))
+						|| (!operaciones.isEmpty() && esUnOperador(
+								Character.toString(pantalla.getText().charAt(pantalla.getText().length() - 1))))
+								&& (pantalla.getText().charAt(pantalla.getText().length() - 1)) != operadores[1]) { // Condiciones
+																													// para
+																													// cambiar
+																													// el
+																													// signo
+																													// a
+																													// algun
+																													// termino
+																													// en
+																													// alguna
+																													// operacion
 					pantalla.setText(pantalla.getText() + Character.toString(operadores[1]));
 				} else {
-					anyadeOperacion(operadores[1]);
+					anyadeOperacion(operadores[1]); // Anyadimos la operacion de resta a nuestra cola Operaciones
 				}
 			}
 
@@ -293,11 +320,13 @@ public class GUICalculadora {
 		bComa.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String pant = pantalla.getText();
-				if (pant.length() == 0) {
-					pant += "0";
+				if ((pant.equals("") || pant == null) || pant.charAt(pant.length() - 1) != '.') { // Si no tenemos un
+																									// punto lo
+																									// anyadimos a la
+																									// pantalla
+					pant += bComa.getText();
+					pantalla.setText(pant);
 				}
-				pant += bComa.getText();
-				pantalla.setText(pant);
 
 			}
 		});
@@ -327,20 +356,35 @@ public class GUICalculadora {
 		bIgual.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				StringBuffer pant = new StringBuffer(pantalla.getText());
-				if (pant.charAt(pant.length() - 1) != operadores[4] || pant.charAt(pant.length() - 1) != operadores[5]) {
+				boolean noCalcular = false;
+				if (existeOperacionAlFinalDeLaPantalla() && pant.charAt(pant.length() - 1) != operadores[4]
+						&& pant.charAt(pant.length() - 1) != operadores[5]) { // Si la secuencia de operaciones acaba en
+																				// un operador de dos terminos -> error
+																				// sintaxis
+					sintaxisInvalida("Error: No se reconoce operacion valida para " + pant.charAt(pant.length() - 1));
+					noCalcular = true; // Indicamos al programa que no deseamos seguir con la ejecucion de la operacion
+				} else if (!existeOperacionAlFinalDeLaPantalla()) { // Guardamos el segundo operando de una operacion en
+																	// la cola
 					String diferencia = convierteOperacionesAString();
 					String nuevo = pant.substring(diferencia.length(), pant.length());
 					operaciones.add(nuevo);
 				}
-				try {
-					iteraOperaciones();
-					pantalla.setText(convierteOperacionesAString());
-				} catch (ArithmeticException e1) {
-					sintaxisInvalida(e1.getMessage());
-				} catch (IllegalArgumentException e2) {
-					sintaxisInvalida(e2.getMessage());
+				/*
+				 * Si podemos continuar con la ejecucion del calculo matematico, realizamos lo que hay dentro del if
+				 */
+				if (!noCalcular) {
+					try { 
+						iteraOperaciones();
+						pantalla.setText(convierteOperacionesAString());
+					} catch (ArithmeticException e1) {
+						sintaxisInvalida("Error: " + e1.getMessage());
+					} catch (NumberFormatException e3) {
+						sintaxisInvalida(
+								"Error del numero: " + e3.getMessage() + ". No se aceptan numeros con decimales");
+					} catch (IllegalArgumentException e2) {
+						sintaxisInvalida(e2.getMessage());
+					}
 				}
-
 			}
 
 		});
@@ -351,20 +395,26 @@ public class GUICalculadora {
 		bBorrar = new JButton("B");
 		bBorrar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				/*
+				 * La implementacion del boton de borrar tanto operaciones anteriores dadas o
+				 * bien modificar un numero de una operacion
+				 */
 				StringBuffer nuevo = new StringBuffer(pantalla.getText());
-				if (nuevo.length() > 0) {
+				int tamanyo = nuevo.length();
+				if (tamanyo > 0) {
+
 					if (existeOperacionAlFinalDeLaPantalla()) {
-						if (nuevo.charAt(nuevo.length() - 1) == operadores[1]) {
+						if (tamanyo > 1 && nuevo.charAt(tamanyo - 1) == operadores[1]
+								&& esUnOperador(Character.toString(nuevo.charAt(tamanyo - 2)))) { //Caso en el que tengamos un menos tras un operador
 							nuevo.deleteCharAt(nuevo.length() - 1);
-							operaciones.pollLast();
 							pantalla.setText(nuevo.toString());
-						} else {
+						} else { //Caso en el que tengamos un operador (sin un numero negativo). Este else garantiza que el - tambien puesa ser interpretado como operador
 							nuevo.deleteCharAt(nuevo.length() - 1);
 							operaciones.pollLast();
 							operaciones.pollLast();
 							pantalla.setText(nuevo.toString());
 						}
-					} else {
+					} else { //Cuando borramos algun numero introducido por el usuario
 						nuevo.deleteCharAt(nuevo.length() - 1);
 						pantalla.setText(nuevo.toString());
 					}
@@ -375,7 +425,10 @@ public class GUICalculadora {
 		frame.getContentPane().add(bBorrar);
 
 	}
-
+	/**
+	 * Fuerza la detencion de la calculadora debido a un error de sintaxis o durante la operacion.
+	 * @param :String -- Mensaje de error el cual sera mostrado por pantalla
+	 */
 	private void sintaxisInvalida(String elProblema) {
 		pantalla.setText(elProblema + ". Pulsar C para reiniciar calculadora");
 		b00.setEnabled(false);
@@ -400,7 +453,10 @@ public class GUICalculadora {
 		bIgual.setEnabled(false);
 
 	}
-
+	/**
+	 * Averiguamos si existe una operacion al final de la pantalla del usuario
+	 * @return :boolean -- true si el caracter final de la pantalla del usuario es un operador. De lo contrario, false.
+	 */
 	private boolean existeOperacionAlFinalDeLaPantalla() {
 		boolean resultado = false;
 		String textoPantalla = pantalla.getText();
@@ -414,7 +470,11 @@ public class GUICalculadora {
 		}
 		return resultado;
 	}
-
+	/**
+	 * Anyadimos una operacion asociada a un boton. Para ello, deberemos usar algun elemento del array char[] Operadores
+	 * Asi, podremos extenter para un futuro el numero de operaciones si fuese necesario.
+	 * @param :char -- El caracter que representa a la operacion a anyadir.
+	 */
 	private void anyadeOperacion(char operador) {
 		StringBuffer pant = new StringBuffer(pantalla.getText());
 		String diferencia = convierteOperacionesAString();
@@ -436,7 +496,10 @@ public class GUICalculadora {
 			pantalla.setText(convierteOperacionesAString());
 		}
 	}
-
+	/**
+	 * Genera una representacion de las operaciones almacenadas en la cola la cual puede ser entendida por el usuario.
+	 * @return :String -- Representacion de las operaciones pendientes.
+	 */
 	private String convierteOperacionesAString() {
 		String r = "";
 		for (int i = 0; i < operaciones.size(); i++) {
@@ -444,42 +507,34 @@ public class GUICalculadora {
 		}
 		return r;
 	}
-
+	/**
+	 * Procesamos las operaciones almacenadas el la cola operaciones
+	 */
 	private void iteraOperaciones() {
-//		String numero1 = "";
-//		String operador = "";
-//		String numero2 = "";
-//		boolean error = false;
+		// Comprobamos de que no existan espacios vacios en la lista de operaciones
 		int contador = 0;
-		while(contador < operaciones.size()) {
-			if(operaciones.get(contador).equals("")) {
+		while (contador < operaciones.size()) {
+			if (operaciones.get(contador).equals("")) {
 				operaciones.remove(contador);
 			}
 			contador++;
 		}
+		// Realizamos los calculos
 		while ((operaciones.size() > 1)) {
-//			numero1 = operaciones.poll();
-//			operador = operaciones.poll();
 			operaciones.addFirst(procesaCalculo(operaciones.poll(), operaciones.poll(), operaciones.poll()));
-//			if (!operador.equals(Character.toString(operadores[5]))) {
-//				numero2 = operaciones.poll();
-//				operaciones.addFirst(procesaCalculo(numero1, numero2, operador));
-//			} else if (operaciones.size() == 2) {
-//				operaciones.addFirst(procesaCalculo(numero1, numero2, operador));
-//			} else {
-//				error = true;
-//			}
 		}
-//		if (error) {
-//			sintaxisInvalida("No se puede realizar operaciones extra cuando se desea conocer si es primo un numero");
-//		}
 
 	}
-
+	/**
+	 * Decodificamos las opereaciones (las cuales son referenciadas por caracteres de []char operadores)
+	 * @param :String -- El primer termino de la operacion
+	 * @param operador :String -- El caracter representando a la operacion
+	 * @param numero2 :String -- El segundo termino (si tuviera). Si no existiera puede dejarse como null o como un String vacio
+	 * @return :String -- El resultado de la operacion. 
+	 * @throws IllegalArgumentException Si la operacion no ha podido ser decodificada
+	 */
 	private String procesaCalculo(String numero1, String operador, String numero2) {
 		String resultado = "";
-		System.out.println(numero1 + " " + operador + " " + numero2);
-		System.out.println(operaciones.toString());
 		char tipoOperacion = operador.charAt(0);
 		if (tipoOperacion == operadores[0]) {
 			resultado = Double.toString(laCalculadora.suma(Double.parseDouble(numero1), Double.parseDouble(numero2)));
@@ -501,7 +556,11 @@ public class GUICalculadora {
 		}
 		return resultado;
 	}
-
+	/**
+	 * Comprobamos si un String es un operador
+	 * @param :String -- El String que queremos comprobar si es o no un operador
+	 * @return :boolean -- true si es operador, false de lo contrario
+	 */
 	private boolean esUnOperador(String s) {
 		boolean res = false;
 		for (int i = 0; i < operadores.length; i++) {
