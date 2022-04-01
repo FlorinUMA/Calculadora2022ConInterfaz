@@ -11,6 +11,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+import java.util.LinkedList;
 import java.awt.event.ActionEvent;
 import java.awt.Font;
 
@@ -40,7 +41,7 @@ public class GUICalculadora {
 	private JButton bBorrar;
 	private JButton bIgual;
 	private Calculadora laCalculadora;
-	private StringBuffer operaciones;
+	private LinkedList<String> operaciones;
 	private char[] operadores;
 
 	/**
@@ -72,7 +73,7 @@ public class GUICalculadora {
 		operadores[3] = '/';
 		operadores[4] = '!';
 		operadores[5] = 'P';
-		operaciones = new StringBuffer();
+		operaciones = new LinkedList<>();
 	}
 
 	/**
@@ -94,7 +95,7 @@ public class GUICalculadora {
 		bReinicializar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pantalla.setText("");
-				operaciones = new StringBuffer();
+				operaciones = new LinkedList<>();
 				// Habilitamos los botones
 
 				b00.setEnabled(true);
@@ -211,11 +212,14 @@ public class GUICalculadora {
 		bRestar = new JButton("-");
 		bRestar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				String pant = pantalla.getText();
-				if (pant.charAt(pant.length() - 1) != operadores[1]) {
-					pant += operadores[1];
-					operaciones = new StringBuffer(pant);
-					pantalla.setText(pant);
+				if (!operaciones.isEmpty()
+						&& esUnOperador(Character.toString(pantalla.getText().charAt(pantalla.getText().length() - 1)))
+						&& (pantalla.getText().charAt(pantalla.getText().length() - 1)) != operadores[1]) {
+//					operaciones.add(Character.toString(operadores[1]));
+//					pantalla.setText(convierteOperacionesAString());
+					pantalla.setText(pantalla.getText() + Character.toString(operadores[1]));
+				} else {
+					anyadeOperacion(operadores[1]);
 				}
 			}
 
@@ -294,7 +298,6 @@ public class GUICalculadora {
 				}
 				pant += bComa.getText();
 				pantalla.setText(pant);
-				operaciones = new StringBuffer(pant);
 
 			}
 		});
@@ -323,16 +326,21 @@ public class GUICalculadora {
 		bIgual = new JButton("=");
 		bIgual.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				operaciones = new StringBuffer(pantalla.getText());
-
-				if (existeOperacionAlFinal() && operaciones.charAt(operaciones.length() - 1) != operadores[4]
-						&& operaciones.charAt(operaciones.length() - 1) != operadores[5]) {
-					sintaxisInvalida(
-							"Error. No se puede calcular la operacion con un operando de dos terminos sin un segundo termino.");
-				} else {
-					pantalla.setText(procesaOperaciones());
-					operaciones = new StringBuffer(pantalla.getText());
+				StringBuffer pant = new StringBuffer(pantalla.getText());
+				if (pant.charAt(pant.length() - 1) != operadores[4] || pant.charAt(pant.length() - 1) != operadores[5]) {
+					String diferencia = convierteOperacionesAString();
+					String nuevo = pant.substring(diferencia.length(), pant.length());
+					operaciones.add(nuevo);
 				}
+				try {
+					iteraOperaciones();
+					pantalla.setText(convierteOperacionesAString());
+				} catch (ArithmeticException e1) {
+					sintaxisInvalida(e1.getMessage());
+				} catch (IllegalArgumentException e2) {
+					sintaxisInvalida(e2.getMessage());
+				}
+
 			}
 
 		});
@@ -345,9 +353,21 @@ public class GUICalculadora {
 			public void actionPerformed(ActionEvent e) {
 				StringBuffer nuevo = new StringBuffer(pantalla.getText());
 				if (nuevo.length() > 0) {
-					nuevo.deleteCharAt(nuevo.length() - 1);
-					operaciones = nuevo;
-					pantalla.setText(operaciones.toString());
+					if (existeOperacionAlFinalDeLaPantalla()) {
+						if (nuevo.charAt(nuevo.length() - 1) == operadores[1]) {
+							nuevo.deleteCharAt(nuevo.length() - 1);
+							operaciones.pollLast();
+							pantalla.setText(nuevo.toString());
+						} else {
+							nuevo.deleteCharAt(nuevo.length() - 1);
+							operaciones.pollLast();
+							operaciones.pollLast();
+							pantalla.setText(nuevo.toString());
+						}
+					} else {
+						nuevo.deleteCharAt(nuevo.length() - 1);
+						pantalla.setText(nuevo.toString());
+					}
 				}
 			}
 		});
@@ -381,7 +401,7 @@ public class GUICalculadora {
 
 	}
 
-	private boolean existeOperacionAlFinal() {
+	private boolean existeOperacionAlFinalDeLaPantalla() {
 		boolean resultado = false;
 		String textoPantalla = pantalla.getText();
 		int tamanyo = textoPantalla.length() - 1;
@@ -396,54 +416,100 @@ public class GUICalculadora {
 	}
 
 	private void anyadeOperacion(char operador) {
-		String pant = pantalla.getText();
+		StringBuffer pant = new StringBuffer(pantalla.getText());
+		String diferencia = convierteOperacionesAString();
+		String nuevo = pant.substring(diferencia.length(), pant.length());
 		if (pant.length() == 0) {
 			sintaxisInvalida("No se puede realizar la operacion " + operador);
-		} else if (existeOperacionAlFinal()) {
-			operaciones.deleteCharAt(operaciones.length() - 1);
-			pantalla.setText(operaciones.toString());
-			if (existeOperacionAlFinal()) {
-				operaciones.deleteCharAt(operaciones.length() - 1);
+		} else if (existeOperacionAlFinalDeLaPantalla()) {
+			operaciones.pollLast();
+			pantalla.setText(convierteOperacionesAString());
+			if (existeOperacionAlFinalDeLaPantalla()) {
+				operaciones.pollLast();
 			}
-			operaciones.append(operador);
-			pantalla.setText(operaciones.toString());
+			operaciones.add(Character.toString(operador));
+			pantalla.setText(convierteOperacionesAString());
 
 		} else {
-			pant += operador;
-			operaciones = new StringBuffer(pant);
-			pantalla.setText(pant);
+			operaciones.add(nuevo);
+			operaciones.add(Character.toString(operador));
+			pantalla.setText(convierteOperacionesAString());
 		}
 	}
 
-	private String procesaOperaciones() {
-		StringBuffer resultado = new StringBuffer();
+	private String convierteOperacionesAString() {
+		String r = "";
+		for (int i = 0; i < operaciones.size(); i++) {
+			r += operaciones.get(i);
+		}
+		return r;
+	}
+
+	private void iteraOperaciones() {
+//		String numero1 = "";
+//		String operador = "";
+//		String numero2 = "";
+//		boolean error = false;
 		int contador = 0;
-		int tamanyo = operaciones.length();
-		String termino1 = "";
-		String termino2 = "";
-		String operacion = "";
-		boolean elNumEsNegativo = false;
-		while (contador < tamanyo) {
-			char c = operaciones.charAt(contador);
-			if (esOperador(c)) {
-				
+		while(contador < operaciones.size()) {
+			if(operaciones.get(contador).equals("")) {
+				operaciones.remove(contador);
+			}
+			contador++;
+		}
+		while ((operaciones.size() > 1)) {
+//			numero1 = operaciones.poll();
+//			operador = operaciones.poll();
+			operaciones.addFirst(procesaCalculo(operaciones.poll(), operaciones.poll(), operaciones.poll()));
+//			if (!operador.equals(Character.toString(operadores[5]))) {
+//				numero2 = operaciones.poll();
+//				operaciones.addFirst(procesaCalculo(numero1, numero2, operador));
+//			} else if (operaciones.size() == 2) {
+//				operaciones.addFirst(procesaCalculo(numero1, numero2, operador));
+//			} else {
+//				error = true;
+//			}
+		}
+//		if (error) {
+//			sintaxisInvalida("No se puede realizar operaciones extra cuando se desea conocer si es primo un numero");
+//		}
+
+	}
+
+	private String procesaCalculo(String numero1, String operador, String numero2) {
+		String resultado = "";
+		System.out.println(numero1 + " " + operador + " " + numero2);
+		System.out.println(operaciones.toString());
+		char tipoOperacion = operador.charAt(0);
+		if (tipoOperacion == operadores[0]) {
+			resultado = Double.toString(laCalculadora.suma(Double.parseDouble(numero1), Double.parseDouble(numero2)));
+		} else if (tipoOperacion == operadores[1]) {
+			resultado = Double.toString(laCalculadora.resta(Double.parseDouble(numero1), Double.parseDouble(numero2)));
+		} else if (tipoOperacion == operadores[2]) {
+			resultado = Double.toString(laCalculadora.mult(Double.parseDouble(numero1), Double.parseDouble(numero2)));
+		} else if (tipoOperacion == operadores[3]) {
+			resultado = Double.toString(laCalculadora.divide(Double.parseDouble(numero1), Double.parseDouble(numero2)));
+		} else if (tipoOperacion == operadores[4]) {
+			resultado = Integer.toString(laCalculadora.fact(Integer.parseInt(numero1)));
+		} else if (tipoOperacion == operadores[5]) {
+			resultado = Boolean.toString(laCalculadora.esPrimo(Integer.parseInt(numero1)));
+		} else {
+			if (resultado.equals("")) {
+				throw new IllegalArgumentException(
+						"No se ha podido procesar la peticion: " + numero1 + operador + numero2);
 			}
 		}
-		return resultado.toString();
+		return resultado;
 	}
 
-	private boolean esOperador(char c) {
+	private boolean esUnOperador(String s) {
 		boolean res = false;
-		for(int i = 0; i < operadores.length; i++) {
-			if(operadores[i] == c) {
+		for (int i = 0; i < operadores.length; i++) {
+			if (Character.toString(operadores[i]).equals(s)) {
 				res = true;
 			}
 		}
-		return false;
+		return res;
 	}
-
-	
-
-
 
 }
